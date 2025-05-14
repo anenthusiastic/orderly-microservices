@@ -8,16 +8,24 @@ import com.fatih.userservice.exception.UserNotFoundException;
 import com.fatih.userservice.repository.UserRepository;
 import com.fatih.userservice.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
 
     public AuthResponse register(RegisterRequest request) {
         if (request.getUsername() == null || request.getUsername().isEmpty()) {
@@ -32,7 +40,13 @@ public class AuthService {
 
         userRepository.save(user);
 
-        String jwt = jwtService.generateToken(user);
+        UserDetails userDetails = org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .authorities("USER")
+                .build();
+
+        String jwt = jwtService.generateToken(userDetails);
         return new AuthResponse(jwt);
     }
 
@@ -45,7 +59,13 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid credential for user " + request.getUsername());
         }
 
-        String jwt = jwtService.generateToken(user);
+        UserDetails userDetails = org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .authorities("USER")
+                .build();
+
+        String jwt = jwtService.generateToken(userDetails);
         return new AuthResponse(jwt);
     }
 }
