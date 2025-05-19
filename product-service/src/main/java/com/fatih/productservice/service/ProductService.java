@@ -2,51 +2,23 @@ package com.fatih.productservice.service;
 
 import com.fatih.productservice.dto.ProductRequest;
 import com.fatih.productservice.entity.Product;
-import com.fatih.productservice.exception.NotFoundException;
-import com.fatih.productservice.repository.ProductRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class ProductService {
+public interface ProductService {
 
-    private final  ProductRepository productRepository;
+    List<Product> getAllProducts();
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
+    Product getProductById(Long id);
 
-    public Product getProductById(Long id) {
-        return productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product with id " + id + "not found."));
-    }
+    Product createProduct(ProductRequest productRequest);
 
-    public Product createProduct(ProductRequest productRequest) {
-        Product product = getProduct(productRequest);
+    Product updateProduct(Long id, Product product);
 
-        return productRepository.save(product);
-    }
+    void deleteProduct(Long id);
 
-    private static Product getProduct(ProductRequest productRequest) {
-        return Product.builder()
-                .name(productRequest.getName())
-                .description(productRequest.getDescription())
-                .price(productRequest.getPrice())
-                .quantity(productRequest.getQuantity())
-                .build();
-    }
+    boolean existById(Long id);
 
-    public Product updateProduct(Long id, Product product) {
-        if (productRepository.existsById(id)) {
-            product.setId(id);
-            return productRepository.save(product);
-        }
-        return null;
-    }
+    void decreaseStock(Long productId, Integer quantity);
 
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
-    }
 }

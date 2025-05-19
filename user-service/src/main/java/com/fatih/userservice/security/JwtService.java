@@ -1,5 +1,6 @@
 package com.fatih.userservice.security;
 
+import com.fatih.userservice.entity.User;
 import io.jsonwebtoken.io.Decoders;
 import org.springframework.stereotype.Service;
 
@@ -50,16 +51,17 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("roles", List.of("ROLE_USER"));
-        return generateToken(extraClaims, userDetails);
+        extraClaims.put("userId" , user.getId());
+        return generateToken(extraClaims, user.getUsername());
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    public String generateToken(Map<String, Object> extraClaims, String username) {
         return Jwts.builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(SignatureAlgorithm.HS256, secretKey)

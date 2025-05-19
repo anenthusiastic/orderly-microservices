@@ -43,6 +43,7 @@ services:
     ports:
       - "8081:8081"
     environment:
+      JWT_SECRET: lTNdYlGN0UcGRubPLFAg/6FKAj/zpaCiweBQ+wDuU6g=
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/userdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
@@ -60,6 +61,7 @@ services:
     ports:
       - "8082:8082"
     environment:
+      JWT_SECRET: lTNdYlGN0UcGRubPLFAg/6FKAj/zpaCiweBQ+wDuU6g=
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/productdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
@@ -67,6 +69,7 @@ services:
     depends_on:
       - postgres-product
       - discovery-server
+      - rabbitmq
     networks:
       - orderly-net
 
@@ -77,15 +80,16 @@ services:
     ports:
       - "8083:8083"
     environment:
+      JWT_SECRET: lTNdYlGN0UcGRubPLFAg/6FKAj/zpaCiweBQ+wDuU6g=
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/orderdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
       PRODUCT_SERVICE_URL: http://product-service:8082/api/products
-
     depends_on:
       - postgres-order
       - discovery-server
+      - rabbitmq
     networks:
       - orderly-net
 
@@ -108,6 +112,30 @@ services:
       - discovery-server
     environment:
         EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka
+    networks:
+      - orderly-net
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - rabbitmq
+    networks:
+      - orderly-net
+
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Web UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     networks:
       - orderly-net
 

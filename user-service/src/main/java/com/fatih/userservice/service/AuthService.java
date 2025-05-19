@@ -40,13 +40,7 @@ public class AuthService {
 
         userRepository.save(user);
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .authorities("USER")
-                .build();
-
-        String jwt = jwtService.generateToken(userDetails);
+        String jwt = jwtService.generateToken(user);
         return new AuthResponse(jwt);
     }
 
@@ -59,13 +53,7 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid credential for user " + request.getUsername());
         }
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .authorities("USER")
-                .build();
-
-        String jwt = jwtService.generateToken(userDetails);
+        String jwt = jwtService.generateToken(user);
         return new AuthResponse(jwt);
     }
 }

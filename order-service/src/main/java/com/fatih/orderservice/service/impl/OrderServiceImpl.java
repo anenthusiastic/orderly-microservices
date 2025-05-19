@@ -1,19 +1,17 @@
 package com.fatih.orderservice.service.impl;
 
 import com.fatih.orderservice.client.ProductClient;
-import com.fatih.orderservice.dto.OrderRequest;
-import com.fatih.orderservice.dto.OrderResponse;
-import com.fatih.orderservice.dto.ProductResponse;
+import com.fatih.orderservice.dto.*;
 import com.fatih.orderservice.entity.Order;
+import com.fatih.orderservice.entity.OrderItem;
 import com.fatih.orderservice.event.OrderPlacedEvent;
-import com.fatih.orderservice.exception.InsufficientStockException;
+import com.fatih.orderservice.exception.ProductNotFoundException;
 import com.fatih.orderservice.repository.OrderRepository;
 import com.fatih.orderservice.service.OrderPublisher;
 import com.fatih.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,36 +24,54 @@ public class OrderServiceImpl implements OrderService {
     private final OrderPublisher orderPublisher;
 
     @Override
-    public OrderResponse placeOrder(OrderRequest request, Long userId) {
-        ProductResponse product = productClient.getProductById(request.getProductId());
+    public OrderResponse createOrder(OrderRequest request, Long userId) {
 
-        if (product.getQuantity() < request.getQuantity()) {
-            throw new InsufficientStockException("yetersiz stok!.");
+        for (OrderItemRequest item : request.getItems()) {
+            Boolean exists = productClient.productExists(item.getProductId());
+            if (!Boolean.TRUE.equals(exists)) {
+                throw new ProductNotFoundException("Product not found: " + item.getProductId());
+            }
         }
 
         Order order = Order.builder()
-                .productId(request.getProductId())
-                .quantity(request.getQuantity())
                 .userId(userId)
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        List<OrderItem> items = request.getItems().stream()
+                .map(itemReq -> OrderItem.builder()
+                        .productId(itemReq.getProductId())
+                        .quantity(itemReq.getQuantity())
+                        .order(order)
+                        .build())
+                .toList();
+
+        order.setItems(items);
+
         Order saved = orderRepository.save(order);
 
-        orderPublisher.publishOrderPlacedEvent(
-                new OrderPlacedEvent(order.getId(), order.getUserId(), "Sipariş başarıyla oluşturuldu.")
-        );
+        OrderPlacedEvent event = OrderPlacedEvent.builder()
+                .userId(order.getUserId())
+                .items(order.getItems().stream()
+                        .map(item -> OrderItemDto.builder()
+                                .productId(item.getProductId())
+                                .quantity(item.getQuantity())
+                                .build())
+                        .toList())
+                .build();
 
-
-        BigDecimal total = product.getPrice().multiply(BigDecimal.valueOf(request.getQuantity()));
+        orderPublisher.publishOrderPlacedEvent(event);
 
         return OrderResponse.builder()
                 .orderId(saved.getId())
-                .productId(saved.getProductId())
                 .userId(saved.getUserId())
-                .quantity(saved.getQuantity())
-                .totalPrice(total)
                 .createdAt(saved.getCreatedAt())
+                .items(saved.getItems().stream()
+                        .map(item -> OrderItemResponse.builder()
+                                .productId(item.getProductId())
+                                .quantity(item.getQuantity())
+                                .build())
+                        .toList())
                 .build();
     }
 
