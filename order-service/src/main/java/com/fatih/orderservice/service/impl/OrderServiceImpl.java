@@ -51,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         OrderPlacedEvent event = OrderPlacedEvent.builder()
+                .orderId(saved.getId())
                 .userId(order.getUserId())
                 .items(order.getItems().stream()
                         .map(item -> OrderItemDto.builder()

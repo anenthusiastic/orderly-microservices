@@ -12,7 +12,7 @@ public class NotificationListener {
 
     @RabbitListener(queues = "${notification.queue.name}")
     public void handleOrderPlaced(OrderPlacedEvent event) {
-        log.info("📦 Yeni sipariş! userId: {}", event.getUserId());
+        log.info("📦 Yeni sipariş! Bildirim gönderiliyor... Sipariş ID: {} , userId: {}", event.getOrderId(), event.getUserId());
         for (OrderItemDto item : event.getItems()) {
             log.info("🔹 Ürün ID: {}, Adet: {}", item.getProductId(), item.getQuantity());
         }

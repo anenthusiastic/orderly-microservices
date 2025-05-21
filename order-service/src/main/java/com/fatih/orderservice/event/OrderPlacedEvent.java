@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class OrderPlacedEvent {
+    private Long orderId;
     private Long userId;
     private List<OrderItemDto> items;
 }

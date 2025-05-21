@@ -17,7 +17,7 @@ public class ProductEventListener {
 
     @RabbitListener(queues = "${product.queue.name}")
     public void handleOrderPlaced(OrderPlacedEvent event) {
-        log.info("📦 Stok Güncellemesi Başladı → userId: {}", event.getUserId());
+        log.info("📦 Stok Güncellemesi Başladı → orderId: {}, userId: {}", event.getOrderId(), event.getUserId());
         for (OrderItemDto item : event.getItems()) {
             log.info("🔻 Ürün ID: {}, adet: {} stoğu düşülüyor", item.getProductId(), item.getQuantity());
             productService.decreaseStock(item.getProductId(), item.getQuantity());

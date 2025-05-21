@@ -61,6 +61,8 @@ services:
     ports:
       - "8082:8082"
     environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
       JWT_SECRET: lTNdYlGN0UcGRubPLFAg/6FKAj/zpaCiweBQ+wDuU6g=
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/productdb
       SPRING_DATASOURCE_USERNAME: postgres
@@ -80,6 +82,8 @@ services:
     ports:
       - "8083:8083"
     environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
       JWT_SECRET: lTNdYlGN0UcGRubPLFAg/6FKAj/zpaCiweBQ+wDuU6g=
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/orderdb
       SPRING_DATASOURCE_USERNAME: postgres
@@ -121,8 +125,12 @@ services:
     container_name: notification-service
     ports:
       - "8084:8084"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     depends_on:
       - rabbitmq
+      - discovery-server
     networks:
       - orderly-net
 

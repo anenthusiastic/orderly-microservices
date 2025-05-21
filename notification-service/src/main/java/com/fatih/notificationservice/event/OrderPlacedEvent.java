@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class OrderPlacedEvent {
+    private Long orderId;
     private Long userId;
     private List<OrderItemDto> items;
 }

@@ -1,6 +1,6 @@
-package com.fatih.orderservice.config;
+package com.fatih.notificationservice.config;
 
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -12,41 +12,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${product.queue.name}")
-    private String productQueue;
-
     @Value("${notification.queue.name}")
-    private String notificationQueue;
-
-    @Value("${order.exchange.name}")
-    private String orderExchange;
-
-    @Value("${order.created.routing.key}")
-    private String orderCreatedRoutingKey;
-
-    @Bean
-    public TopicExchange orderExchange() {
-        return new TopicExchange(orderExchange);
-    }
-
-    @Bean
-    public Queue productQueue() {
-        return new Queue(productQueue);
-    }
+    private String queueName;
 
     @Bean
     public Queue notificationQueue() {
-        return new Queue(notificationQueue);
-    }
-
-    @Bean
-    public Binding productBinding() {
-        return BindingBuilder.bind(productQueue()).to(orderExchange()).with(orderCreatedRoutingKey);
-    }
-
-    @Bean
-    public Binding notificationBinding() {
-        return BindingBuilder.bind(notificationQueue()).to(orderExchange()).with(orderCreatedRoutingKey);
+        return new Queue(queueName, true);
     }
 
     @Bean
